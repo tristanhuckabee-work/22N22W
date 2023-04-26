@@ -7,7 +7,7 @@ require('dotenv').config();
 require('express-async-errors');
 
 // Import the models used in these routes - DO NOT MODIFY
-const { Band, Musician, Instrument } = require('./db/models');
+const { Band, Musician, Instrument, MusicianInstrument } = require('./db/models');
 
 // Express using json - DO NOT MODIFY
 app.use(express.json());
@@ -26,17 +26,16 @@ app.post('/bands/:bandId/musicians', async (req, res, next) => {
 
 // STEP 2: Connecting two existing records (Many-to-Many)
 app.post('/musicians/:musicianId/instruments', async (req, res, next) => {
-    let instruments = [];
     const {instrumentIds} = req.body
 
     const musician = await Musician.findByPk(req.params.musicianId);
 
-    instrumentIds.forEach(async (instrumentId) => {
-      const instrument = await Instrument.findByPk(instrumentId);
-      instruments.push(instrument);
-    });
+    for (let i = 0; i < instrumentIds.length; i++) {
+      instrumentId = instrumentIds[i];
 
-    await musician.addInstruments(instruments);
+      const instrument = await Instrument.findByPk(instrumentId);
+      await musician.addInstrument(instrument);
+    }
 
     res.json({
       message: `Associated ${musician.firstName} with instruments ${instrumentIds}.`
