@@ -4,6 +4,7 @@ const router = express.Router();
 
 // BASIC PHASE 1, Step A - Import model
 const db = require('../db/models');
+// const { Tree, Insect } = require('../db/models');
 // Import Op to perform comparison operations in WHERE clauses
 const { Op } = require('sequelize');
 
@@ -25,6 +26,11 @@ router.get('/:id', async (req, res, next) => {
 
   try {
     tree = await db.Tree.findByPk(req.params.id);
+    // tree = await db.Tree.findOne({
+    //   where: {
+    //     id: req.params.id
+    //   }
+    // });
 
     if (tree) {
       res.json(tree);

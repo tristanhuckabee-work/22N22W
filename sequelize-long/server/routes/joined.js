@@ -6,42 +6,26 @@ const router = express.Router();
 const { Insect, Tree } = require('../db/models');
 const { Op } = require("sequelize");
 
-/**
- * PHASE 7 - Step A: List of all trees with insects that are near them
- *
- * Approach: Eager Loading
- *
- * Path: /trees-insects
- * Protocol: GET
- * Response: JSON array of objects
- *   - Tree properties: id, tree, location, heightFt, insects (array)
- *   - Trees ordered by the tree heightFt from tallest to shortest
- *   - Insect properties: id, name
- *   - Insects for each tree ordered alphabetically by name
- */
+// PHASE 7 - Step A: List of all trees with insects that are near them
 router.get('/trees-insects', async (req, res, next) => {
     let trees = [];
 
     trees = await Tree.findAll({
         attributes: ['id', 'tree', 'location', 'heightFt'],
+        include: {
+          model: Insect,
+          required: true,
+          attributes: ['id', 'name'],
+        },
+        order: [
+          ['id'], [Insect, 'name']
+        ]
     });
 
     res.json(trees);
 });
 
-/**
- * PHASE 7 - Step B: List of all insects with the trees they are near
- *
- * Approach: Lazy Loading
- *
- * Path: /insects-trees
- * Protocol: GET
- * Response: JSON array of objects
- *   - Insect properties: id, name, trees (array)
- *   - Insects for each tree ordered alphabetically by name
- *   - Tree properties: id, tree
- *   - Trees ordered alphabetically by tree
- */
+// PHASE 7 - Step B: List of all insects with the trees they are near
 router.get('/insects-trees', async (req, res, next) => {
     let payload = [];
 
@@ -51,10 +35,16 @@ router.get('/insects-trees', async (req, res, next) => {
     });
     for (let i = 0; i < insects.length; i++) {
         const insect = insects[i];
+        const trees = await insect.getTrees({
+          attributes: ['id', 'tree'],
+          order: ['tree']
+        });
+
         payload.push({
             id: insect.id,
             name: insect.name,
             description: insect.description,
+            trees
         });
     }
 
